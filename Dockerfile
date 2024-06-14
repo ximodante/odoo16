@@ -10,6 +10,8 @@ ENV LANG C.UTF-8
 ARG TARGETARCH
 
 # Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
+# CANNOT INSTALL python3-debugpy
+# use RUN pip3 install debugpy    
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -35,7 +37,6 @@ RUN apt-get update && \
         python3-watchdog \
         python3-xlrd \
         python3-xlwt \
-        python3-debugpy \
         xz-utils && \
     if [ -z "${TARGETARCH}" ]; then \
         TARGETARCH="$(dpkg --print-architecture)"; \
@@ -78,6 +79,9 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
     && apt-get -y install --no-install-recommends ./odoo.deb \
     && rm -rf /var/lib/apt/lists/* odoo.deb
 
+# Install debugger debugpy
+RUN pip3 install debugpy
+
 # Copy entrypoint script and Odoo configuration file
 COPY ./entrypoint.sh /
 COPY ./odoo.conf /etc/odoo/
@@ -88,8 +92,8 @@ RUN chown odoo /etc/odoo/odoo.conf \
     && chown -R odoo /mnt/extra-addons
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
-# Expose Odoo services
-EXPOSE 8069 8071 8072
+# Expose Odoo services (8069 8071 8072) and debugpy services (5678)
+EXPOSE 8069 8071 8072 5678 
 
 # Set the default config file
 ENV ODOO_RC /etc/odoo/odoo.conf
